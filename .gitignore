@@ -1,0 +1,87 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local backup files
+* copy.py
+
+# OS/editor
+.DS_Store
+._*
+**/._*
+.vscode/
+.idea/
+
+# Generated outputs
+outputs/*
+!outputs/.gitkeep
+results/
+logs/
+*.log
+
+# Generated memory / eval artifacts
+data/attack_memory*/
+data/*results*
+data/*.npy
+*.npy
+
+# Local external repositories / heavyweight benchmarks
+third_party/
+examples/
+examples_repos/
+experiments/harmbench/HarmBench/
+evaluation/drift/DRIFT/
+evaluation/drift/AgentDyn/
+experiments/drift/.venv/
+experiments/drift/.venv-agentdyn/
+experiments/phase2/logs/
+experiments/agentdyn/runs/
+experiments/agentdyn/sed_memory/
+experiments/fcv/sed_memory/
+experiments/fcv/logs/
+outputs/fcv/
+experiments/agentdojo/logs/
+experiments/agentdojo/runs/
+experiments/agentdojo/sed_memory/
+evaluation/OpenAgentSafety/
+experiments/redcode/python_index**
+experiments/redcode/mixed_eval_test*
+experiments/agentharm/runs/
+experiments/agentharm/sed_memory/
+evaluation/safety-eval
+evaluation/InjecAgent
+evaluation/AgentHarm/experiments
+evaluation/wildjailbreak/harmful_rows_from_baseline_harmful_outputs.jsonl
+evaluation/Should-It-Be-Executed-Or-Processed
+
+# Local eval report dumps
+fireworks_ai__*.json
+
+# Office / presentation artifacts
+*.docx
+*.pptx
+
+# Large prompt dumps from exploratory runs
+test_prompts/
+
+# random files
+experiments/adaptive_jailbreak/diagnose_failures.py
+experiments/adaptive_jailbreak/failure_dossiers.json
+experiments/analysis/SED_FAILURE_ANALYSIS.md
+AGENTS.md
+release_user_tests/
+_user_study/

@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Self-Evolving Defense: Continual Security Policy Learning for LLM Agents</title>
+<meta name="description" content="SED turns judged attack failures into reusable security policies for a frozen LLM agent. Lowest attack success on six of eight benchmarks, 98% to 17.8% under AutoDAN-Turbo, with no loss in benign utility.">
+<link rel="canonical" href="https://nhminle.github.io/SED/">
+<link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="static/images/apple-touch-icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Self-Evolving Defense">
+<meta property="og:title" content="Self-Evolving Defense: Continual Security Policy Learning for LLM Agents">
+<meta property="og:description" content="A training-free framework that turns harmful agent trajectories into reusable security policies, allowing a frozen agent to improve as attacks evolve.">
+<meta property="og:url" content="https://nhminle.github.io/SED/">
+<meta property="og:image" content="https://nhminle.github.io/SED/static/images/og_card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Self-Evolving Defense: the SED loop of retrieve, act, judge, and learn around a frozen LLM agent.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Self-Evolving Defense: Continual Security Policy Learning for LLM Agents">
+<meta name="twitter:description" content="A training-free framework that turns harmful agent trajectories into reusable security policies, allowing a frozen agent to improve as attacks evolve.">
+<meta name="twitter:image" content="https://nhminle.github.io/SED/static/images/og_card.png">
+
+<meta name="citation_title" content="Self-Evolving Defense: Continual Security Policy Learning for LLM Agents">
+<meta name="citation_author" content="Le, Minh Nhat">
+<meta name="citation_author" content="Gondi, Nisarga">
+<meta name="citation_author" content="Peng, Yibo">
+<meta name="citation_author" content="Ni, Ronghao">
+<meta name="citation_author" content="Jia, Limin">
+<meta name="citation_author" content="Chen, Beidi">
+<meta name="citation_author" content="Zheng, Haizhong">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_abstract_html_url" content="https://nhminle.github.io/SED/">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/examples/jsm/Addons.js": "./static/js/three-addons-slim.mjs?v=1"
+  }
+}
+</script>
+<link rel="stylesheet" href="static/css/sed-loop.css?v=20">
+<link rel="stylesheet" href="static/css/sed-fig1.css?v=3">
+<link rel="stylesheet" href="static/css/sed-results.css?v=3">
+<script>document.documentElement.classList.add("js");</script>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #171a18;
+    --muted: #5e6561;
+    --line: #dfe4e1;
+    --soft: #f5f7f5;
+    --green: #176b52;
+    --green-dark: #0e4a39;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0 24px 96px;
+    font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.68;
+    color: var(--ink);
+    background: #f4f7f5;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  /* Page backdrop — set SED_PAGE_BG below: "vanta-net" | "fiber-nodes" */
+  #page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: auto;
+    background: #f4f7f5;
+    opacity: 0.5;
+    animation: page-bg-breathe 20s ease-in-out infinite;
+  }
+  @keyframes page-bg-breathe {
+    0%, 100% { opacity: 0.44; }
+    50% { opacity: 0.58; }
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1241px;
+    margin: 28px auto 0;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(223, 228, 225, 0.95);
+    border-radius: 14px;
+    padding: 8px 40px 48px;
+    box-shadow: 0 10px 40px rgba(23, 26, 24, 0.05);
+  }
+
+  /* ---- title block ---- */
+  header {
+    padding: 68px 0 0;
+    text-align: center;
+  }
+  #introduction { margin-top: 40px; }
+  .kicker {
+    margin: 0 0 14px;
+    color: var(--green);
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  h1 {
+    max-width: 900px;
+    margin: 0 auto 14px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 3.15rem;
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .title-sub {
+    max-width: 720px;
+    margin: 0 auto 22px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.38rem;
+    line-height: 1.35;
+    font-weight: 400;
+    color: #3f4743;
+    text-wrap: balance;
+  }
+  .deck {
+    max-width: 760px;
+    margin: 0 auto 28px;
+    color: #3f4743;
+    font-size: 1.12rem;
+    line-height: 1.6;
+  }
+  .authors { margin: 0 auto 6px; line-height: 2; max-width: 860px; }
+  sup { font-size: .7em; }
+  .affil { margin: 10px 0 0; font-size: .95rem; color: #525a56; line-height: 1.8; }
+  .note { margin: 6px 0 0; font-size: .9rem; color: var(--muted); }
+
+  .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 30px 0 0; }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 94px;
+    padding: 8px 16px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--ink);
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-size: .92rem;
+    font-weight: 650;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+  .links a .link-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    fill: currentColor;
+  }
+  .links a.secondary { background: #fff; color: var(--ink); }
+  .links .link-disabled {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 94px;
+    padding: 8px 16px;
+    border: 1px dashed #b8bfbb;
+    border-radius: 4px;
+    background: #fff;
+    color: #6b7370;
+    font-size: .92rem;
+    font-weight: 650;
+    cursor: default;
+  }
+  .links .link-disabled .link-icon { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+  .links .link-disabled small { font-size: .74rem; font-weight: 500; color: #8a918d; }
+  .links a:hover { background: #363a38; }
+  .links a.secondary:hover { background: var(--soft); }
+  .links a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+
+  .highlights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 40px 0 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .highlight {
+    position: relative;
+    overflow: hidden;
+    padding: 22px 24px;
+    cursor: default;
+    isolation: isolate;
+    transition: background-color 0.35s ease;
+  }
+  .highlight + .highlight { border-left: 1px solid var(--line); }
+  .highlight-fog {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+  }
+  .highlight-fog canvas {
+    opacity: 0.55 !important;
+  }
+  .highlight.is-fog .highlight-fog {
+    opacity: 1;
+  }
+  .highlight-body {
+    position: relative;
+    z-index: 1;
+  }
+  .highlight strong {
+    display: inline-block;
+    color: var(--green-dark);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.85rem;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    transform-origin: left center;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease;
+  }
+  .highlight span {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: .86rem;
+    line-height: 1.45;
+    transition: color 0.3s ease;
+  }
+  .highlight:hover,
+  .highlight:focus-visible,
+  .highlight.is-fog {
+    background-color: rgba(236, 245, 240, 0.55);
+  }
+  .highlight:hover strong,
+  .highlight:focus-visible strong,
+  .highlight.is-fog strong {
+    transform: scale(1.14);
+    color: #0a3d30;
+  }
+  .highlight:hover span,
+  .highlight:focus-visible span,
+  .highlight.is-fog span {
+    color: #3a4540;
+  }
+  .highlight:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .highlight strong,
+    .highlight-fog,
+    .highlight span { transition: none; }
+    .highlight:hover strong,
+    .highlight:focus-visible strong,
+    .highlight.is-fog strong { transform: none; }
+  }
+
+  /* ---- sections ---- */
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.7rem; font-weight: 700; letter-spacing: 0;
+    margin: 60px 0 18px; padding-top: 26px;
+    border-top: 1px solid var(--line);
+    text-wrap: balance; clear: both;
+  }
+  h3 { font-size: 1.13rem; font-weight: 700; margin: 34px 0 12px; }
+  p { margin: 0 0 18px; }
+  a { color: #155f76; text-underline-offset: 3px; }
+  strong { font-weight: 700; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .88em; background: var(--soft); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ---- figures ---- */
+  figure { margin: 38px 0; }
+  figure img { width: 100%; height: auto; display: block; border: 1px solid #edf0ee; border-radius: 4px; }
+  figcaption { font-size: .9rem; color: var(--muted); line-height: 1.58; margin-top: 12px; }
+  figcaption b { color: var(--ink); }
+  figure.narrow img { max-width: 720px; margin-inline: auto; }
+  figure.narrow.tight img { max-width: 860px; }
+
+  .overview-figure { margin-bottom: 8px; }
+
+  /* figures that sit beside the prose, as in the paper */
+  figure.side {
+    float: right; width: 45%; margin: 4px 0 22px 38px;
+  }
+  figure.side img { width: 100%; max-width: none; margin-inline: 0; }
+  figure.side figcaption { font-size: .87rem; margin-top: 10px; }
+
+  /* motivation: text + chart as a tight split (no float gap) */
+  #motivation {
+    margin: 36px 0 10px;
+    padding-top: 18px;
+  }
+  #method {
+    margin-top: 36px;
+    padding-top: 18px;
+  }
+  .motivation-split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 6px 32px;
+    align-items: center;
+    margin: 0 0 4px;
+  }
+  .motivation-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+  .motivation-copy > p { margin: 0 0 14px; text-wrap: pretty; }
+  .motivation-copy > p:last-child { margin-bottom: 0; }
+
+  /* generic text/table + figure split, used for Figures 4 and 5 */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 6px 32px;
+    align-items: start;
+    margin: 22px 0 8px;
+    clear: both;
+  }
+  .split--fig-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .split--center { align-items: center; }
+  .split__copy { min-width: 0; }
+  .split__copy > p { margin: 0 0 14px; text-wrap: pretty; }
+  .split__copy > p:last-child { margin-bottom: 0; }
+  .split__copy .scroll { margin: 0 0 18px; }
+  .split__copy .scroll table { font-size: .85rem; }
+  .split__copy .scroll th, .split__copy .scroll td { padding: 6px 9px; }
+  .split__copy .scroll caption { font-size: .84rem; padding-top: 10px; }
+  .split > figure {
+    float: none;
+    width: auto;
+    margin: 0;
+    min-width: 0;
+  }
+  .split > figure img { width: 100%; max-width: none; margin-inline: 0; border-radius: 6px; }
+  .split > figure figcaption { font-size: .84rem; margin-top: 8px; line-height: 1.45; }
+  .motivation-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 2px 0 16px;
+  }
+  .motivation-stat {
+    padding: 14px 14px;
+    border-left: 3px solid var(--green);
+    background: linear-gradient(90deg, rgba(237, 247, 242, 0.95) 0%, rgba(237, 247, 242, 0.35) 55%, rgba(237, 247, 242, 0) 100%);
+    text-align: center;
+  }
+  .motivation-stat strong {
+    display: block;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.55rem;
+    line-height: 1.1;
+    color: var(--green-dark);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  .motivation-stat strong .motivation-slash {
+    margin: 0 0.18em;
+    color: #8a968f;
+    font-weight: 500;
+    font-size: 0.82em;
+  }
+  .motivation-stat > span {
+    display: block;
+    margin-top: 5px;
+    font-size: .8rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .motivation-stat > span b {
+    color: #3f4743;
+    font-weight: 600;
+  }
+  .motivation-split figure {
+    float: none;
+    width: auto;
+    margin: 0;
+  }
+  .motivation-split figure img {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    border-radius: 6px;
+  }
+  .motivation-split figcaption {
+    font-size: .84rem;
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+
+  /* centered block figure — readable but not full width */
+  figure.center {
+    float: none; width: auto; max-width: 680px; margin: 34px auto;
+  }
+  figure.center img { width: 100%; max-width: 680px; margin-inline: auto; }
+
+  /* ---- tables ---- */
+  .scroll { overflow-x: auto; margin: 26px 0; clear: both; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  table.dense { font-size: .78rem; }
+  table.dense th, table.dense td { padding: 6px 8px; }
+  caption { caption-side: bottom; font-size: .9rem; color: var(--muted); text-align: left; padding-top: 12px; line-height: 1.58; }
+  caption b { color: var(--ink); }
+  th, td { padding: 7px 11px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { border-bottom: 1.5px solid var(--ink); font-weight: 700; }
+  tbody tr + tr td { border-top: 1px solid #ececec; }
+  tbody tr:hover { background: #f8faf8; }
+  tbody tr.sed td { border-top: 1.5px solid var(--ink); background: #edf7f2; font-weight: 700; }
+  td.best { font-weight: 700; }
+  tr.group td { text-align: left; padding-top: 15px; font-weight: 700; }
+
+  pre {
+    background: var(--soft); padding: 18px 20px; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .85rem; line-height: 1.6; margin: 0 0 18px; border-radius: 4px;
+  }
+  footer { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--line); font-size: .87rem; color: var(--muted); clear: both; }
+
+  /* ---- interactive DTap scatter (Figure 3) ---- */
+  .dtap-chart-wrap {
+    margin: 38px 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(23, 26, 24, 0.04);
+  }
+  .dtap-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 12px; font-size: .88rem;
+  }
+  .dtap-controls span { color: var(--muted); margin-right: 4px; }
+  .dtap-ctrl {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: 999px; padding: 5px 14px; cursor: pointer;
+    font: inherit; font-size: .85rem;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+  .dtap-ctrl:hover { border-color: #a5aca8; }
+  .dtap-ctrl.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .dtap-ctrl:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  .dtap-canvas-box { position: relative; height: 480px; width: 100%; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #eef1ef; }
+  .dtap-y-caption { font-size: .82rem; color: var(--muted); margin: 6px 0 10px; }
+  .dtap-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 10px; font-size: .82rem; }
+  .dtap-legend-row { display: flex; flex-wrap: wrap; gap: 8px 40px; margin-top: 12px; }
+  .dtap-legend-block { margin-top: 0; }
+  .dtap-legend-title { font-size: .78rem; color: var(--ink); font-weight: 700; margin: 0 0 6px; }
+  .dtap-legend-title span { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .dtap-leg-item { display: inline-flex; align-items: center; gap: 6px; }
+  .dtap-leg-item.dtap-leg-sed { font-weight: 700; }
+  .dtap-leg-badge { width: 22px; height: 22px; object-fit: contain; }
+  .dtap-leg-nodef {
+    display: inline-flex; width: 20px; height: 20px; align-items: center;
+    justify-content: center; font-size: .75rem; color: var(--muted);
+    border: 1px dashed var(--line); border-radius: 50%;
+  }
+  .dtap-leg-pareto {
+    display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid #0d9488; box-sizing: border-box;
+  }
+  .dtap-leg-frontier {
+    display: inline-block; width: 22px; height: 0;
+    border-top: 2px dashed #0d9488; vertical-align: middle;
+  }
+  .dtap-leg-hint { color: var(--muted); }
+  .dtap-callout {
+    margin-top: 10px; font-size: .85rem; color: #3f4743;
+    padding: 8px 12px; background: #edf7f2; border-left: 3px solid var(--green); border-radius: 0 4px 4px 0;
+  }
+  .dtap-chart-wrap figcaption { margin-top: 14px; }
+
+  @media (max-width: 700px) {
+    figure.side { float: none; width: 100%; margin: 30px 0; }
+    .motivation-split {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .motivation-copy { padding: 0; }
+    .motivation-stats { gap: 8px; }
+    .split, .split--fig-wide { grid-template-columns: 1fr; gap: 18px; }
+  }
+  @media (max-width: 600px) {
+    body { padding-inline: 12px; }
+    body { font-size: 16px; }
+    .wrap { padding-inline: 18px; margin-top: 12px; border-radius: 10px; }
+    header { padding-top: 42px; }
+    h1 { font-size: 2.35rem; }
+    .title-sub { font-size: 1.08rem; }
+    h2 { font-size: 1.45rem; }
+    .deck { font-size: 1rem; }
+    .highlights { grid-template-columns: 1fr; }
+    .highlight { padding: 16px 4px; }
+    .highlight + .highlight { border-left: 0; border-top: 1px solid var(--line); }
+    .highlight:hover strong,
+    .highlight:focus-visible strong,
+    .highlight.is-fog strong { transform-origin: center center; }
+    th, td { padding-inline: 9px; }
+    .dtap-canvas-box { height: 400px; }
+    .dtap-chart-wrap { padding: 12px 10px 10px; }
+    .dtap-legend-row { gap: 8px 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .dtap-chart-wrap { animation: none; }
+    #page-bg { animation: none; opacity: 0.48; }
+  }
+</style>
+</head>
+<body>
+<div id="page-bg" aria-hidden="true"></div>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Preprint · 2026</p>
+  <h1>Self-Evolving Defense</h1>
+  <p class="title-sub">Continual Security Policy Learning for LLM Agents</p>
+
+  <p class="deck">A training-free framework that turns harmful agent trajectories into
+  reusable security policies, allowing a frozen agent to improve as attacks evolve.</p>
+
+  <p class="authors">
+    Minh Nhat Le<sup>2</sup>*, Nisarga Gondi<sup>1</sup>*, Yibo Peng<sup>1</sup>,
+    Ronghao Ni<sup>1</sup>, Limin Jia<sup>1</sup>, Beidi Chen<sup>1</sup>, Haizhong Zheng<sup>1</sup>
+  </p>
+  <p class="affil"><sup>1</sup>Carnegie Mellon University &nbsp;&nbsp; <sup>2</sup>University of Massachusetts Amherst</p>
+  <p class="note">*Equal contribution. Work by Minh Nhat Le was completed during an internship at Carnegie Mellon University.</p>
+
+  <div class="links">
+    <span class="link-disabled" role="link" aria-disabled="true" title="The PDF will be linked here when the preprint is public">
+      <svg class="link-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5.586a1.5 1.5 0 0 1 1.06.44l2.415 2.414a1.5 1.5 0 0 1 .439 1.06V14.5A1.5 1.5 0 0 1 12.5 16h-8A1.5 1.5 0 0 1 3 14.5v-13zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5V4H10.5A1.5 1.5 0 0 1 9 2.5V1H4.5zM10 1.207V2.5a.5.5 0 0 0 .5.5h1.293L10 1.207zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 5 7.5zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5z"/>
+      </svg>
+      Paper <small>coming soon</small>
+    </span>
+    <a href="https://github.com/nhminle/SED">
+      <svg class="link-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      Code
+    </a>
+    <a class="secondary" href="#bibtex">BibTeX</a>
+  </div>
+
+  <div class="highlights" aria-label="Selected results">
+    <div class="highlight" tabindex="0">
+      <div class="highlight-fog" aria-hidden="true"></div>
+      <div class="highlight-body"><strong>0.42%</strong><span>targeted ASR on AgentDojo</span></div>
+    </div>
+    <div class="highlight" tabindex="0">
+      <div class="highlight-fog" aria-hidden="true"></div>
+      <div class="highlight-body"><strong>7.8%</strong><span>X-Teaming ASR on HarmBench</span></div>
+    </div>
+    <div class="highlight" tabindex="0">
+      <div class="highlight-fog" aria-hidden="true"></div>
+      <div class="highlight-body"><strong>8</strong><span>benchmarks tested across three threat surfaces</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>LLM agents read private data, call tools, and edit software, exposing them to direct
+jailbreaks, indirect prompt injections, and insecure code-generation attacks. Existing
+defenses typically cover one interface and remain fixed after deployment.</p>
+
+<p><strong>Self-Evolving Defense (SED)</strong> instead treats each judged failure as
+training data for an external policy memory. It converts harmful trajectories into
+reusable security policies and retrieves the relevant policies on later tasks, while
+keeping the agent's model weights frozen.</p>
+
+<figure class="overview-figure" data-svg="static/images/fig1/sed_loop.svg?v=3">
+  <img class="overview-figure__png" data-src="static/images/overview.png" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="The SED loop: policies are retrieved into the agent's prompt, the agent acts, a judge scores the trajectory, and harmful episodes are synthesized into new policies for later episodes." style="aspect-ratio: 1800 / 1013;">
+  <noscript><img src="static/images/overview.png" alt="The SED loop: policies are retrieved into the agent's prompt, the agent acts, a judge scores the trajectory, and harmful episodes are synthesized into new policies for later episodes."></noscript>
+  <figcaption><b>Figure 1:</b> The SED loop. Memory is read during an episode and written
+  only after an external judge scores the completed trajectory, so a successful attack can
+  influence later episodes but never the one it appears in.</figcaption>
+</figure>
+
+<h2 id="motivation">Why Static Defenses Don't Hold</h2>
+
+<div class="motivation-split">
+  <div class="motivation-copy">
+    <p>Adaptive attackers revise their prompts after each failure, while static defenses
+    retain nothing from prior attempts. The result is a defense that looks strong on a
+    single shot and collapses once the attacker can&nbsp;iterate.</p>
+
+    <div class="motivation-stats" aria-label="Static defense ASR on HarmBench">
+      <div class="motivation-stat">
+        <strong>97.9%<span class="motivation-slash">/</span>93.4%</strong>
+        <span><b>AutoDAN-Turbo</b> · Llama Guard 3 &amp; SafeHarbor</span>
+      </div>
+      <div class="motivation-stat">
+        <strong>39.9%<span class="motivation-slash">/</span>35.2%</strong>
+        <span><b>X-Teaming</b> · Llama Guard 3 &amp; SafeHarbor</span>
+      </div>
+    </div>
+
+    <p>This gap motivates a defense that updates from observed failures without retraining
+    the agent.</p>
+  </div>
+
+  <figure>
+    <img loading="lazy" decoding="async" src="static/images/adaptive_asr.png?v=tight2" alt="Bar chart of attack success rate for AutoDAN-Turbo and X-Teaming against no defense, Llama Guard, and SafeHarbor.">
+    <figcaption><b>Figure 2:</b> Attack success rate of adaptive jailbreaks on HarmBench
+    against an undefended agent and two static jailbreak defenses.</figcaption>
+  </figure>
+</div>
+
+
+<h2 id="method">How SED Works</h2>
+
+<p>SED wraps a frozen agent with a policy memory that is read during an episode and updated
+only after the episode has been scored.</p>
+
+<section class="sed-loop" id="sed-loop" aria-label="SED learning loop" data-step="retrieve">
+  <div id="sed-loop-fiber" class="sed-loop__fiber" aria-hidden="true"></div>
+  <div class="sed-loop__inner">
+    <svg class="sed-loop__spine" aria-hidden="true">
+      <defs>
+        <linearGradient id="sed-flow-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(23,107,82,0)"/>
+          <stop offset="45%" stop-color="#176b52"/>
+          <stop offset="100%" stop-color="rgba(23,107,82,0)"/>
+        </linearGradient>
+      </defs>
+      <path class="sed-loop__progress-fill" d="M 42 40 L 42 340"/>
+      <path class="sed-loop__flow" d="M 42 40 L 42 340"/>
+      <circle class="sed-loop__packet" cx="42" cy="40" r="5"/>
+    </svg>
+    <div class="sed-loop__rows">
+      <div class="sed-loop__row">
+        <button type="button" class="sed-loop__node is-active" aria-label="Retrieve">
+          <span class="sed-loop__chip">R</span>
+          <span class="sed-loop__ripple" aria-hidden="true"></span>
+          <span class="sed-loop__ripple sed-loop__ripple--2" aria-hidden="true"></span>
+        </button>
+        <article class="sed-loop__card is-active" data-step="retrieve">
+          <div class="sed-loop__card-head">
+            <span class="sed-loop__card-num">01</span>
+            <h3>Retrieve <span class="sed-loop__card-tag">select relevant policies</span></h3>
+          </div>
+          <p><span>Rank stored policies for the task, select up to three across policy families, and include their covering parents.</span></p>
+        </article>
+      </div>
+      <div class="sed-loop__row">
+        <button type="button" class="sed-loop__node" aria-label="Act">
+          <span class="sed-loop__chip">A</span>
+          <span class="sed-loop__ripple" aria-hidden="true"></span>
+          <span class="sed-loop__ripple sed-loop__ripple--2" aria-hidden="true"></span>
+        </button>
+        <article class="sed-loop__card" data-step="act">
+          <div class="sed-loop__card-head">
+            <span class="sed-loop__card-num">02</span>
+            <h3>Act <span class="sed-loop__card-tag">run the frozen agent</span></h3>
+          </div>
+          <p><span>Run the frozen agent with the retrieved policies appended to its system prompt.</span></p>
+        </article>
+      </div>
+      <div class="sed-loop__row">
+        <button type="button" class="sed-loop__node" aria-label="Judge">
+          <span class="sed-loop__chip">J</span>
+          <span class="sed-loop__ripple" aria-hidden="true"></span>
+          <span class="sed-loop__ripple sed-loop__ripple--2" aria-hidden="true"></span>
+        </button>
+        <article class="sed-loop__card" data-step="judge">
+          <div class="sed-loop__card-head">
+            <span class="sed-loop__card-num">03</span>
+            <h3>Judge <span class="sed-loop__card-tag">score the full trajectory</span></h3>
+          </div>
+          <p><span>Score the full role-labeled trajectory; retain only harmful episodes and their supporting evidence.</span></p>
+        </article>
+      </div>
+      <div class="sed-loop__row">
+        <button type="button" class="sed-loop__node" aria-label="Learn">
+          <span class="sed-loop__chip">L</span>
+          <span class="sed-loop__ripple" aria-hidden="true"></span>
+          <span class="sed-loop__ripple sed-loop__ripple--2" aria-hidden="true"></span>
+        </button>
+        <article class="sed-loop__card" data-step="learn">
+          <div class="sed-loop__card-head">
+            <span class="sed-loop__card-num">04</span>
+            <h3>Learn <span class="sed-loop__card-tag">store and consolidate failures</span></h3>
+          </div>
+          <p><span>Distill the failure into enforceable policies, then merge or organize them in the policy tree.</span></p>
+        </article>
+      </div>
+    </div>
+  </div>
+  <p class="sed-loop__hint">Auto-advances · hover to pause · click a step to jump</p>
+</section>
+
+<h2 id="evaluation">Experimental Evaluation</h2>
+
+<p>We evaluate three open-source models on eight chat, tool-use, and coding benchmarks.
+Each benchmark starts from an empty memory, evolves over its own stream, and uses its
+official grader.</p>
+
+<section class="results-card" id="results-main" aria-labelledby="results-main-title">
+  <header class="results-card__head">
+    <p class="results-card__kicker">Main results · DeepSeek-V4-Flash · 8 benchmarks, 5 defenses</p>
+    <h3 class="results-card__title" id="results-main-title">SED leads six of eight security benchmarks, and the gains are not bought with refusals.</h3>
+    <p class="results-card__lede">Compared against the undefended agent and the strongest static baseline on each benchmark. Attack success rate (ASR) is lower-is-better; utility is higher-is-better.</p>
+  </header>
+
+  <div class="results-card__summary">
+    <div class="stat-grid">
+      <div class="stat stat--count">
+        <span class="stat__label">Security benchmarks led</span>
+        <span class="stat__value"><span class="stat__to">6<small>/ 8</small></span></span>
+        <span class="stat__note">lowest ASR of any defense on WJB, HB<sub>dir</sub>, HB<sub>adv</sub>, RedCode, AgentDojo, AgentDyn</span>
+      </div>
+      <div class="stat">
+        <span class="stat__label">RedCode risky execution</span>
+        <span class="stat__value"><span class="stat__from">95.6%</span><span class="stat__arrow">→</span><span class="stat__to">11.3<small>%</small></span></span>
+        <span class="stat__note">specialized defenses leave it at 49% or above</span>
+      </div>
+      <div class="stat">
+        <span class="stat__label">AgentDojo utility under attack</span>
+        <span class="stat__value"><span class="stat__from">44.4%</span><span class="stat__arrow">→</span><span class="stat__to">87.9<small>%</small></span></span>
+        <span class="stat__note">the agent still finishes the task; clean utility unchanged at 89.7%</span>
+      </div>
+      <div class="stat">
+        <span class="stat__label">SWE-bench resolve rate</span>
+        <span class="stat__value"><span class="stat__from">62.6%</span><span class="stat__arrow">→</span><span class="stat__to">68.8<small>%</small></span></span>
+        <span class="stat__note">highest of all evaluated defenses; next best DRIFT at 67.6%</span>
+      </div>
+    </div>
+
+    <div class="bar-strip" aria-label="SED against the strongest baseline on selected benchmarks">
+      <div class="bar-group">
+        <p class="bar-group__title">Attack success rate <span>lower is better</span></p>
+        <div class="bar-row">
+          <span class="bar-row__label">WildJailbreak</span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:31.4"><i></i><b>31.4 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:17.55"><i></i><b>17.6 <span>SafeHarbor</span></b></div>
+            <div class="bar bar--sed" style="--v:2.1"><i></i><b>2.1 <span>SED</span></b></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-row__label">RedCode</span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:95.6"><i></i><b>95.6 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:49.28"><i></i><b>49.3 <span>SafeHarbor</span></b></div>
+            <div class="bar bar--sed" style="--v:11.3"><i></i><b>11.3 <span>SED</span></b></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-row__label">AgentDojo</span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:49"><i></i><b>49.0 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:3.69"><i></i><b>3.7 <span>DRIFT</span></b></div>
+            <div class="bar bar--sed" style="--v:0.42"><i></i><b>0.42 <span>SED</span></b></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-row__label">AgentDyn</span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:33.04"><i></i><b>33.0 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:2.14"><i></i><b>2.1 <span>DRIFT</span></b></div>
+            <div class="bar bar--sed" style="--v:0.54"><i></i><b>0.54 <span>SED</span></b></div>
+          </div>
+        </div>
+      </div>
+      <div class="bar-group">
+        <p class="bar-group__title">Benign utility <span>higher is better</span></p>
+        <div class="bar-row">
+          <span class="bar-row__label">AgentDojo <small>under attack</small></span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:44.36"><i></i><b>44.4 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:78.19"><i></i><b>78.2 <span>SafeHarbor</span></b></div>
+            <div class="bar bar--sed" style="--v:87.88"><i></i><b>87.9 <span>SED</span></b></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-row__label">SWE-bench <small>resolve rate</small></span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:62.6"><i></i><b>62.6 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:67.6"><i></i><b>67.6 <span>DRIFT</span></b></div>
+            <div class="bar bar--sed" style="--v:68.8"><i></i><b>68.8 <span>SED</span></b></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-row__label">AgentDyn <small>under attack</small></span>
+          <div class="bar-row__bars">
+            <div class="bar bar--undef" style="--v:49.11"><i></i><b>49.1 <span>Undefended</span></b></div>
+            <div class="bar bar--base" style="--v:66.43"><i></i><b>66.4 <span>SafeHarbor</span></b></div>
+            <div class="bar bar--sed" style="--v:69.29"><i></i><b>69.3 <span>SED</span></b></div>
+          </div>
+        </div>
+      </div>
+      <div class="bar-legend">
+        <span><i></i>Undefended</span>
+        <span class="is-base"><i></i>Strongest baseline on that benchmark</span>
+        <span class="is-sed"><i></i>SED</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-card__full" id="results-main-full">
+  <div class="results-card__full-inner">
+<div class="scroll">
+<table>
+  <caption><b>Table 1: Attack success rate (%), lower is better.</b> DeepSeek-V4-Flash
+  across eight benchmarks. WJB = WildJailbreak, HB = HarmBench (direct and adversarial),
+  RC = RedCode, AgH = AgentHarm, ADojo = AgentDojo, ADyn = AgentDyn.</caption>
+  <thead>
+    <tr><th>Defense</th><th>WJB</th><th>HB<sub>dir</sub></th><th>HB<sub>adv</sub></th><th>RC</th><th>AgH</th><th>FCV</th><th>ADojo</th><th>ADyn</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Undefended</td><td>31.40</td><td>25.94</td><td>25.55</td><td>95.60</td><td>42.60</td><td>19.17</td><td>49.00</td><td>33.04</td></tr>
+    <tr><td>Llama Guard 3</td><td>29.31</td><td>2.81</td><td>8.16</td><td>89.12</td><td>3.00</td><td>20.43</td><td>49.32</td><td>29.11</td></tr>
+    <tr><td>SafeHarbor</td><td>17.55</td><td>15.00</td><td>9.64</td><td>49.28</td><td class="best">1.59</td><td>5.71</td><td>11.90</td><td>10.18</td></tr>
+    <tr><td>DRIFT</td><td>23.90</td><td>24.06</td><td>16.64</td><td>91.12</td><td>31.06</td><td class="best">1.48</td><td>3.69</td><td>2.14</td></tr>
+    <tr><td>GuardAgent</td><td>35.65</td><td>23.44</td><td>18.16</td><td>82.40</td><td>18.34</td><td>6.19</td><td>12.60</td><td>9.82</td></tr>
+    <tr class="sed"><td>SED</td><td>2.10</td><td>0.94</td><td>3.07</td><td>11.30</td><td>6.20</td><td>2.91</td><td>0.42</td><td>0.54</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="scroll">
+<table>
+  <caption><b>Table 1b: Benign utility (%), higher is better.</b> DeepSeek-V4-Flash.
+  ADojo = AgentDojo, ADyn = AgentDyn; u = benign utility, ua = utility under attack,
+  res = SWE-bench resolve rate.</caption>
+  <thead>
+    <tr><th>Defense</th><th>AgH</th><th>ADojo<sub>u</sub></th><th>ADojo<sub>ua</sub></th><th>ADyn<sub>u</sub></th><th>ADyn<sub>ua</sub></th><th>FCV<sub>res</sub></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Undefended</td><td>67.30</td><td>89.69</td><td>44.36</td><td class="best">73.33</td><td>49.11</td><td>62.60</td></tr>
+    <tr><td>Llama Guard 3</td><td>57.50</td><td class="best">92.78</td><td>42.36</td><td>65.00</td><td>45.36</td><td>55.80</td></tr>
+    <tr><td>SafeHarbor</td><td>41.83</td><td>89.69</td><td>78.19</td><td>71.67</td><td>66.43</td><td>56.00</td></tr>
+    <tr><td>DRIFT</td><td class="best">76.73</td><td>86.60</td><td>76.08</td><td>28.33</td><td>28.21</td><td>67.60</td></tr>
+    <tr><td>GuardAgent</td><td>75.85</td><td>73.20</td><td>58.90</td><td>53.33</td><td>43.04</td><td>38.80</td></tr>
+    <tr class="sed"><td>SED</td><td>63.10</td><td>89.69</td><td class="best">87.88</td><td class="best">73.33</td><td class="best">69.29</td><td class="best">68.80</td></tr>
+  </tbody>
+</table>
+</div>
+  </div>
+  </div>
+
+  <button type="button" class="results-card__toggle" aria-expanded="false" aria-controls="results-main-full">
+    <span class="when-closed">View all numbers (Tables 1 and 1b)</span>
+    <span class="when-open">Hide the full tables</span>
+    <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+  </button>
+</section>
+
+<h3 id="dtap">Prompt Injection on DTap</h3>
+
+<p>DTap evaluates indirect prompt injection against CRM, workflow, and coding agents on three
+models. Figure 3 places every defense on the security–capability plane; the card below gives
+the per-domain numbers.</p>
+
+<div class="dtap-chart-wrap" id="dtap-scatter-root">
+  <div class="dtap-controls">
+    <span>Model</span>
+    <button type="button" class="dtap-ctrl active" data-group="model" data-value="all">All</button>
+    <button type="button" class="dtap-ctrl" data-group="model" data-value="deepseek">DeepSeek</button>
+    <button type="button" class="dtap-ctrl" data-group="model" data-value="glm">GLM-5.2</button>
+    <button type="button" class="dtap-ctrl" data-group="model" data-value="kimi">Kimi K3</button>
+    <span style="margin-left:12px">Y-axis</span>
+    <button type="button" class="dtap-ctrl active" data-group="metric" data-value="indirect">Indirect ASR</button>
+    <button type="button" class="dtap-ctrl" data-group="metric" data-value="direct">Direct ASR</button>
+  </div>
+  <p class="dtap-y-caption" id="dtap-y-label">Macro-average indirect attack success (%) across CRM, workflow, and code</p>
+  <div class="dtap-canvas-box">
+    <canvas id="dtap-scatter-canvas" aria-label="Interactive scatter: benign task success versus attack success rate for DTap defenses"></canvas>
+  </div>
+  <div class="dtap-legend-row">
+    <div class="dtap-legend-block">
+      <p class="dtap-legend-title">Model <span>outer ring</span></p>
+      <div class="dtap-legend" id="dtap-legend-models"></div>
+    </div>
+    <div class="dtap-legend-block">
+      <p class="dtap-legend-title">Defense <span>corner chip; no-defense shows the model only</span></p>
+      <div class="dtap-legend" id="dtap-legend-defenses"></div>
+    </div>
+  </div>
+  <p class="dtap-callout">Ideal defenses sit in the <strong>lower-right</strong>: high benign utility, low attack success. Hover a badge to zoom and focus it; nearby points fade back. SED badges cluster toward the ideal corner across models.</p>
+  <figure id="dtap-scatter-fallback" hidden>
+    <img loading="lazy" decoding="async" src="static/images/dtap_scatter.png" alt="Static fallback: DTap security versus capability scatter plot.">
+  </figure>
+  <figcaption><b>Figure 3:</b> Security versus capability on DTap. Macro-average attack
+  success (toggle indirect/direct) against benign task success across CRM, workflow, and code.
+  Colored ring = model; corner chip = defense (same badges as the paper figure). Overlapping badges are nudged apart; thin lines mark true data positions. On DeepSeek-V4-Flash, SED lowers indirect attack success from 79–90% to 19–26%, a 60- to 65-point drop in every domain, while benign task success moves by less than 1.2 points.</figcaption>
+</div>
+
+<section class="results-card" id="results-dtap" aria-labelledby="results-dtap-title">
+  <header class="results-card__head">
+    <p class="results-card__kicker">DTap · 3 models · CRM, workflow, and code agents</p>
+    <h3 class="results-card__title" id="results-dtap-title">Indirect injection success drops by 20 to 65 points in every domain, on every model, while benign task success stays essentially unchanged.</h3>
+    <p class="results-card__lede">Headline number is indirect-injection ASR, undefended → SED. Direct-injection ASR and benign task success are shown underneath each chip.</p>
+  </header>
+
+  <div class="results-card__summary">
+    <div class="model-rows">
+      <div class="model-row">
+        <div class="model-row__name">DeepSeek-V4-Flash<small>most exposed undefended</small></div>
+        <div class="chip">
+          <div class="chip__domain">CRM <span class="chip__delta">−65 pts</span></div>
+          <div class="chip__main"><span class="chip__from">86.7</span><span class="chip__arrow">→</span><span class="chip__to">21.5<small>%</small></span></div>
+          <span class="chip__sub">direct <b>96.7 → 22.5</b> · benign <b>87.1 → 86.6</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Workflow <span class="chip__delta">−60 pts</span></div>
+          <div class="chip__main"><span class="chip__from">78.9</span><span class="chip__arrow">→</span><span class="chip__to">19.2<small>%</small></span></div>
+          <span class="chip__sub">direct <b>83.1 → 31.2</b> · benign <b>91.3 → 90.2</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Code <span class="chip__delta">−64 pts</span></div>
+          <div class="chip__main"><span class="chip__from">89.7</span><span class="chip__arrow">→</span><span class="chip__to">26.1<small>%</small></span></div>
+          <span class="chip__sub">direct <b>95.0 → 24.0</b> · benign <b>99.7 → 99.1</b></span>
+        </div>
+      </div>
+      <div class="model-row">
+        <div class="model-row__name">GLM-5.2</div>
+        <div class="chip">
+          <div class="chip__domain">CRM <span class="chip__delta">−33 pts</span></div>
+          <div class="chip__main"><span class="chip__from">41.3</span><span class="chip__arrow">→</span><span class="chip__to">8.3<small>%</small></span></div>
+          <span class="chip__sub">direct <b>32.2 → 12.2</b> · benign <b>72.1 → 75.8</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Workflow <span class="chip__delta">−23 pts</span></div>
+          <div class="chip__main"><span class="chip__from">32.4</span><span class="chip__arrow">→</span><span class="chip__to">9.6<small>%</small></span></div>
+          <span class="chip__sub">direct <b>47.3 → 17.3</b> · benign <b>92.3 → 91.8</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Code <span class="chip__delta">−46 pts</span></div>
+          <div class="chip__main"><span class="chip__from">49.7</span><span class="chip__arrow">→</span><span class="chip__to">3.7<small>%</small></span></div>
+          <span class="chip__sub">direct <b>57.9 → 2.5</b> · benign <b>97.9 → 97.9</b></span>
+        </div>
+      </div>
+      <div class="model-row">
+        <div class="model-row__name">Kimi K3</div>
+        <div class="chip">
+          <div class="chip__domain">CRM <span class="chip__delta">−38 pts</span></div>
+          <div class="chip__main"><span class="chip__from">41.3</span><span class="chip__arrow">→</span><span class="chip__to">3.3<small>%</small></span></div>
+          <span class="chip__sub">direct <b>42.2 → 7.8</b> · benign <b>88.5 → 88.2</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Workflow <span class="chip__delta">−20 pts</span></div>
+          <div class="chip__main"><span class="chip__from">25.8</span><span class="chip__arrow">→</span><span class="chip__to">5.9<small>%</small></span></div>
+          <span class="chip__sub">direct <b>26.3 → 10.4</b> · benign <b>89.2 → 88.2</b></span>
+        </div>
+        <div class="chip">
+          <div class="chip__domain">Code <span class="chip__delta">−34 pts</span></div>
+          <div class="chip__main"><span class="chip__from">36.6</span><span class="chip__arrow">→</span><span class="chip__to">2.3<small>%</small></span></div>
+          <span class="chip__sub">direct <b>51.3 → 4.4</b> · benign <b>99.6 → 99.6</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-card__full" id="results-dtap-full">
+  <div class="results-card__full-inner">
+<div class="scroll">
+<table class="dense">
+  <caption><b>Table 2: DTap prompt-injection results (%).</b> ind and dir are indirect and
+  direct injection ASR (lower is better); ben is benign utility (higher is better).</caption>
+  <thead>
+    <tr><th rowspan="2">Defense</th><th colspan="3">CRM</th><th colspan="3">Workflow</th><th colspan="3">Code</th></tr>
+    <tr><th>ind ↓</th><th>dir ↓</th><th>ben ↑</th><th>ind ↓</th><th>dir ↓</th><th>ben ↑</th><th>ind ↓</th><th>dir ↓</th><th>ben ↑</th></tr>
+  </thead>
+  <tbody>
+    <tr class="group"><td colspan="10">DeepSeek-V4-Flash</td></tr>
+    <tr><td>Undefended</td><td>86.67</td><td>96.67</td><td class="best">87.12</td><td>78.85</td><td>83.12</td><td>91.34</td><td>89.70</td><td>95.04</td><td class="best">99.70</td></tr>
+    <tr><td>Llama Guard 3</td><td>66.67</td><td>67.42</td><td>82.42</td><td>54.81</td><td>45.45</td><td>92.12</td><td>43.64</td><td>41.67</td><td>98.48</td></tr>
+    <tr><td>SafeHarbor</td><td>58.67</td><td>80.00</td><td>39.39</td><td>62.50</td><td>67.53</td><td>88.06</td><td>83.64</td><td>68.60</td><td>91.21</td></tr>
+    <tr><td>DRIFT</td><td>33.33</td><td>83.33</td><td>86.06</td><td>57.69</td><td>72.73</td><td class="best">92.81</td><td class="best">20.86</td><td>90.91</td><td>99.09</td></tr>
+    <tr><td>GuardAgent</td><td>48.32</td><td>88.89</td><td>80.00</td><td>66.35</td><td>64.94</td><td>90.70</td><td>27.95</td><td>92.56</td><td>99.39</td></tr>
+    <tr class="sed"><td>SED</td><td class="best">21.48</td><td class="best">22.47</td><td>86.59</td><td class="best">19.23</td><td class="best">31.17</td><td>90.15</td><td>26.06</td><td class="best">23.97</td><td>99.09</td></tr>
+
+    <tr class="group"><td colspan="10">GLM-5.2</td></tr>
+    <tr><td>Undefended</td><td>41.33</td><td>32.22</td><td>72.12</td><td>32.38</td><td>47.30</td><td>92.33</td><td>49.70</td><td>57.85</td><td>97.88</td></tr>
+    <tr><td>Llama Guard 3</td><td>18.67</td><td>17.78</td><td>75.15</td><td class="best">8.74</td><td>32.00</td><td class="best">93.94</td><td>47.56</td><td>51.67</td><td class="best">98.78</td></tr>
+    <tr><td>SafeHarbor</td><td>12.00</td><td>13.33</td><td>58.18</td><td>26.00</td><td>28.00</td><td>92.60</td><td>19.39</td><td>28.10</td><td class="best">98.78</td></tr>
+    <tr><td>DRIFT</td><td>10.67</td><td>20.00</td><td>75.76</td><td>21.20</td><td>37.30</td><td>93.20</td><td>14.55</td><td>43.80</td><td class="best">98.78</td></tr>
+    <tr><td>GuardAgent</td><td>36.00</td><td>32.22</td><td>73.33</td><td>30.50</td><td>50.70</td><td>90.50</td><td>36.65</td><td>53.72</td><td>98.18</td></tr>
+    <tr class="sed"><td>SED</td><td class="best">8.26</td><td class="best">12.20</td><td class="best">75.78</td><td>9.62</td><td class="best">17.33</td><td>91.78</td><td class="best">3.66</td><td class="best">2.50</td><td>97.87</td></tr>
+
+    <tr class="group"><td colspan="10">Kimi K3</td></tr>
+    <tr><td>Undefended</td><td>41.33</td><td>42.22</td><td class="best">88.48</td><td>25.81</td><td>26.32</td><td>89.22</td><td>36.59</td><td>51.28</td><td>99.62</td></tr>
+    <tr><td>Llama Guard 3</td><td>21.33</td><td>34.44</td><td class="best">88.48</td><td>8.08</td><td>16.88</td><td class="best">93.67</td><td>33.94</td><td>43.48</td><td class="best">100.00</td></tr>
+    <tr><td>SafeHarbor</td><td>15.33</td><td>17.78</td><td>70.30</td><td class="best">4.30</td><td>11.69</td><td>91.64</td><td>9.76</td><td>30.25</td><td>98.18</td></tr>
+    <tr><td>DRIFT</td><td>16.67</td><td>30.00</td><td>87.88</td><td>21.43</td><td>30.67</td><td>93.41</td><td>9.09</td><td>40.68</td><td>99.62</td></tr>
+    <tr><td>GuardAgent</td><td>25.33</td><td>41.11</td><td>81.82</td><td>19.35</td><td>28.57</td><td>87.58</td><td>18.18</td><td>46.90</td><td class="best">100.00</td></tr>
+    <tr class="sed"><td>SED</td><td class="best">3.33</td><td class="best">7.78</td><td>88.18</td><td>5.88</td><td class="best">10.39</td><td>88.18</td><td class="best">2.28</td><td class="best">4.39</td><td>99.63</td></tr>
+  </tbody>
+</table>
+</div>
+  </div>
+  </div>
+
+  <button type="button" class="results-card__toggle" aria-expanded="false" aria-controls="results-dtap-full">
+    <span class="when-closed">View all numbers (Table 2, all three models)</span>
+    <span class="when-open">Hide the full table</span>
+    <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+  </button>
+</section>
+
+<h2 id="adaptive">Holding Up Under Adaptive Attack</h2>
+
+<div class="split split--fig-wide">
+<div class="split__copy">
+<p>On DeepSeek-V4-Flash, SED lowers AutoDAN-Turbo and X-Teaming success from 98.0% and
+50.0% to 17.8% and 7.8%. The same advantage remains on GLM-5.2 and Kimi&nbsp;K3.</p>
+
+<div class="scroll">
+<table>
+  <caption><b>Table 3: Attack success rate (%) under adaptive attack, lower is better.</b>
+  NoDef = undefended, LG = Llama Guard 3, SH = SafeHarbor, DR = DRIFT, GA = GuardAgent.</caption>
+  <thead>
+    <tr><th>Attack</th><th>NoDef</th><th>LG</th><th>SH</th><th>DR</th><th>GA</th><th>SED</th></tr>
+  </thead>
+  <tbody>
+    <tr class="group"><td colspan="7">DeepSeek-V4-Flash</td></tr>
+    <tr><td>AutoDAN-Turbo</td><td>98.00</td><td>97.92</td><td>93.44</td><td>79.70</td><td>87.80</td><td class="best">17.82</td></tr>
+    <tr><td>X-Teaming</td><td>50.00</td><td>39.90</td><td>35.21</td><td>50.73</td><td>47.40</td><td class="best">7.81</td></tr>
+    <tr class="group"><td colspan="7">GLM-5.2</td></tr>
+    <tr><td>AutoDAN-Turbo</td><td>30.31</td><td>29.25</td><td>23.12</td><td>27.81</td><td>38.44</td><td class="best">7.10</td></tr>
+    <tr><td>X-Teaming</td><td>15.62</td><td>14.90</td><td>10.10</td><td>13.12</td><td>15.94</td><td class="best">8.50</td></tr>
+    <tr class="group"><td colspan="7">Kimi K3</td></tr>
+    <tr><td>AutoDAN-Turbo</td><td>19.38</td><td>16.56</td><td>12.19</td><td>19.06</td><td>19.18</td><td class="best">10.43</td></tr>
+    <tr><td>X-Teaming</td><td>28.13</td><td>15.58</td><td>13.90</td><td>20.76</td><td>20.92</td><td class="best">10.51</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>AutoDAN-Turbo jailbreaks 98 of 100 undefended behaviors at a median of 3 iterations.
+Against SED, it succeeds on 10 of 100 and requires a median of 11.5 iterations for those
+successes.</p>
+</div>
+
+<figure>
+  <img loading="lazy" decoding="async" src="static/images/heatmap.png?v=tight2" alt="Heatmap of attack iterations to jailbreak for each defense, one column per behavior and one row per attack iteration.">
+  <figcaption><b>Figure 4:</b> Attack iterations to jailbreak. AutoDAN-Turbo against
+  DeepSeek-V4-Flash, one panel per defense. Each column is one of 100 behaviors in attacker
+  order; each row is an attack iteration. Color is the judge score, light green (safe) to
+  dark red (jailbroken); white marks iterations after the attack has already succeeded and
+  stopped.</figcaption>
+</figure>
+</div>
+
+
+<h2 id="analysis">Where Does the Robustness Come From?</h2>
+
+<p>We test whether the gains come from extra prompt text or from the judge alone.</p>
+
+<div class="scroll">
+<table>
+  <caption><b>Table 4: Memory ablation on DeepSeek-V4-Flash.</b> Attack success rate (%),
+  lower is better. Each row adds one component to the undefended agent.</caption>
+  <thead>
+    <tr><th>Variant</th><th>AutoDAN-Turbo</th><th>X-Teaming</th><th>RedCode</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>No memory (undefended)</td><td>98.00</td><td>50.00</td><td>95.60</td></tr>
+    <tr><td>+ episodic recall</td><td>42.27</td><td>19.69</td><td>25.60</td></tr>
+    <tr><td>+ policy synthesis</td><td>28.12</td><td>14.00</td><td>13.70</td></tr>
+    <tr class="sed"><td>+ consolidation (full SED)</td><td>17.82</td><td>7.81</td><td>11.30</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="split split--fig-wide split--center">
+<div class="split__copy">
+<p>Episodic recall already cuts attack success, policy synthesis lowers it further, and
+tree consolidation yields the full result. Because synthesis and consolidation compress
+the retrieved text, prompt length does not explain the ordering. GuardAgent also uses a
+model for safety decisions but remains at 87.8% and 47.4% under the two adaptive attacks,
+showing that the judge alone is insufficient.</p>
+
+<p>Freezing the memory after 100 behaviors lowers cumulative ASR from 23.4% to 13.4%; continued
+evolution reaches 9.4%. Applying the frozen attack-derived library to disjoint benign data
+costs at most 2.2 utility points.</p>
+
+<div class="scroll">
+<table>
+  <caption><b>Table 5: Benign utility under policy transfer (%), higher is better.</b>
+  A frozen policy library learned on harmful episodes is applied read-only to a disjoint benign split.</caption>
+  <thead>
+    <tr><th>Benign benchmark</th><th>No memory</th><th>Attack-derived policies</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>WildJailbreak benign</td><td>97.60</td><td>96.00</td></tr>
+    <tr><td>AgentHarm benign</td><td>66.90</td><td>64.68</td></tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<figure>
+  <img loading="lazy" decoding="async" src="static/images/frozen_vs_evolving.png?v=tight2" alt="Cumulative attack success over an X-Teaming stream, comparing the undefended agent, SED frozen after 100 behaviors, and SED evolving continuously.">
+  <figcaption><b>Figure 5:</b> Frozen versus evolving policy memory. Cumulative X-Teaming
+  attack success against a GLM-5.2 agent on HarmBench.</figcaption>
+</figure>
+</div>
+
+
+<h2 id="bibtex">BibTeX</h2>
+
+<pre><code>@inproceedings{le2026sed,
+  title     = {Self-Evolving Defense: Continual Security Policy Learning
+               for LLM Agents},
+  author    = {Le, Minh Nhat and Gondi, Nisarga and Peng, Yibo and Ni, Ronghao
+               and Jia, Limin and Chen, Beidi and Zheng, Haizhong},
+  year      = {2026},
+  note      = {Preprint},
+  url       = {https://nhminle.github.io/SED/},
+}</code></pre>
+
+</main>
+
+<footer>
+  <p>This work contains examples of harmful and offensive language produced by language
+  models, included to document the attacks the defense is evaluated against.</p>
+  <p>Website adapted from the
+  <a href="https://github.com/eliahuhorwitz/Academic-Project-Page-Template">Academic Project Page Template</a>,
+  licensed under
+  <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+  <p>Background animation by
+  <a href="https://www.vantajs.com/">Vanta.js</a>
+  (<a href="https://github.com/tengbao/vanta">Teng Bao</a>)
+  and
+  <a href="https://github.com/muratkamci/recoat">Recoat</a>
+  (<a href="https://github.com/muratkamci">Murat Kamci</a>),
+  licensed under the
+  <a href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
+</footer>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.fog.min.js" crossorigin="anonymous"></script>
+<script type="module" src="static/js/sed-loop-fiber.mjs?v=19"></script>
+<script src="static/js/sed-loop.js?v=20"></script>
+<script src="static/js/sed-fig1.js?v=3"></script>
+<script src="static/js/sed-results.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script src="static/js/dtap_scatter.js?v=dtapui3"></script>
+<script>window.SED_PAGE_BG = "vanta-net"; /* "fiber-nodes" for Recoat grid */</script>
+<script>
+(function () {
+  if ((window.SED_PAGE_BG || "vanta-net") !== "vanta-net") return;
+  var el = document.getElementById("page-bg");
+  if (!el || !window.VANTA || !window.VANTA.NET) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  window.__sedVanta = VANTA.NET({
+    el: el,
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200.0,
+    minWidth: 200.0,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    color: 0x5f9d84,
+    backgroundColor: 0xf4f7f5,
+    points: 10.0,
+    maxDistance: 23.0,
+    spacing: 18.0,
+    showDots: false,
+    mouseCoeffX: 0.55,
+    mouseCoeffY: 0.35
+  });
+})();
+</script>
+<script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var cells = document.querySelectorAll(".highlight");
+  if (!cells.length) return;
+
+  function ensureFog(cell) {
+    if (reduce || !window.VANTA || !window.VANTA.FOG) return null;
+    if (cell.__sedFog) return cell.__sedFog;
+    var fogEl = cell.querySelector(".highlight-fog");
+    if (!fogEl) return null;
+    cell.__sedFog = VANTA.FOG({
+      el: fogEl,
+      mouseControls: false,
+      touchControls: false,
+      gyroControls: false,
+      minHeight: 80.0,
+      minWidth: 80.0,
+      highlightColor: 0xd8efe4,
+      midtoneColor: 0x9fc9b6,
+      lowlightColor: 0x6fa890,
+      baseColor: 0xf7fbf9,
+      blurFactor: 0.72,
+      speed: 1.15,
+      zoom: 0.85
+    });
+    return cell.__sedFog;
+  }
+
+  function showFog(cell) {
+    ensureFog(cell);
+    cell.classList.add("is-fog");
+    if (cell.__sedFog && typeof cell.__sedFog.resize === "function") {
+      requestAnimationFrame(function () { cell.__sedFog.resize(); });
+    }
+  }
+
+  function hideFog(cell) {
+    cell.classList.remove("is-fog");
+  }
+
+  cells.forEach(function (cell) {
+    cell.addEventListener("mouseenter", function () { showFog(cell); });
+    cell.addEventListener("mouseleave", function () { hideFog(cell); });
+    cell.addEventListener("focus", function () { showFog(cell); });
+    cell.addEventListener("blur", function () { hideFog(cell); });
+  });
+})();
+</script>
+<script type="module">
+const mode = window.SED_PAGE_BG || "vanta-net";
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (mode === "fiber-nodes" && !reduce) {
+  const { FiberNodes } = await import("https://cdn.jsdelivr.net/npm/recoat@0.1.0/dist/three.mjs");
+  const bg = FiberNodes({
+    container: "#page-bg",
+    nodeCount: 2400,
+    color: "#b0ccc0",
+    highlightColor: "#e4f0ea",
+    hoverColor: "#8fb8a8",
+    bgColor: "#f4f7f5",
+    speed: 0.26,
+    metallic: 0.18,
+    nodeSize: 1.15,
+    elongation: 0.75,
+    mouseRadius: 1.6,
+    mouseForce: 0.18,
+    responsive: true
+  });
+  bg.start();
+  window.__sedRecoat = bg;
+}
+</script>
+</body>
+</html>

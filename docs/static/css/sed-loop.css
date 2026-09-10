@@ -1,0 +1,337 @@
+/* SED vertical loop — row-aligned spine + full-width steps */
+.sed-loop {
+  --sed-accent: #176b52;
+  --sed-glow: rgba(23, 107, 82, 0.22);
+  --sed-rail: 84px;
+  position: relative;
+  margin: 28px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(23, 26, 24, 0.06);
+}
+
+.sed-loop__fiber {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--sed-rail) + 36px);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.72;
+  -webkit-mask-image:
+    linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 55%, rgba(0, 0, 0, 0.35) 72%, transparent 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 76%, rgba(0, 0, 0, 0.4) 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 55%, rgba(0, 0, 0, 0.35) 72%, transparent 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 76%, rgba(0, 0, 0, 0.4) 88%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.sed-loop__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+}
+
+.sed-loop__spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--sed-rail);
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sed-loop__track {
+  stroke: #dde4e0;
+  stroke-width: 2;
+  fill: none;
+}
+
+.sed-loop__progress-fill {
+  stroke: var(--sed-accent);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.4;
+}
+
+.sed-loop__flow {
+  stroke: url(#sed-flow-grad);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px var(--sed-glow));
+}
+
+.sed-loop__packet {
+  fill: #fff;
+  stroke: var(--sed-accent);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 5px var(--sed-glow));
+}
+
+.sed-loop__rows {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--sed-rail) 1fr;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 0;
+  min-height: 400px;
+  padding: 10px 0 6px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.sed-loop__row {
+  display: contents;
+}
+
+.sed-loop__node {
+  position: relative;
+  z-index: 3;
+  justify-self: center;
+  align-self: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  margin-top: 0;
+  pointer-events: auto;
+}
+
+.sed-loop__card {
+  width: 100%;
+  align-self: center;
+  padding: 12px 18px 12px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  box-sizing: border-box;
+  pointer-events: auto;
+  transition:
+    opacity 0.35s ease,
+    background 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.sed-loop__node:focus-visible .sed-loop__chip {
+  outline: 2px solid var(--sed-accent);
+  outline-offset: 2px;
+}
+
+.sed-loop__chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1.5px solid #c8d2cd;
+  background: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a8480;
+  transition: background 0.4s ease, border-color 0.4s ease, color 0.35s ease, box-shadow 0.4s ease;
+}
+
+.sed-loop__node.is-done .sed-loop__chip {
+  background: #e8f2ed;
+  border-color: var(--sed-accent);
+  color: var(--sed-accent);
+}
+
+.sed-loop__node.is-active .sed-loop__chip {
+  background: var(--sed-accent);
+  border-color: var(--sed-accent);
+  color: #fff;
+  box-shadow: 0 0 14px var(--sed-glow);
+}
+
+.sed-loop__ripple {
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  border: 1px solid var(--sed-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sed-loop__node.is-active .sed-loop__ripple {
+  animation: sed-ripple 2.2s ease-out infinite;
+}
+
+.sed-loop__node.is-active .sed-loop__ripple--2 {
+  animation-delay: 0.55s;
+}
+
+@keyframes sed-ripple {
+  0% { opacity: 0.5; transform: scale(0.92); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+.sed-loop__card:not(.is-active) {
+  opacity: 0.78;
+}
+
+.sed-loop__card.is-active {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(238, 248, 244, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border-color: rgba(223, 228, 225, 0.9);
+  box-shadow: 0 2px 16px rgba(23, 26, 24, 0.05);
+}
+
+.sed-loop[data-step="learn"] .sed-loop__card.is-active {
+  box-shadow: 0 2px 20px rgba(23, 107, 82, 0.09);
+}
+
+.sed-loop__card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sed-loop__card-num {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sed-accent);
+  flex-shrink: 0;
+}
+
+.sed-loop__card h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+  display: inline;
+}
+
+.sed-loop__card-tag {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+}
+
+.sed-loop__card p {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.48;
+  color: #4a5350;
+}
+
+.sed-loop__card:not(.is-active) p {
+  color: #5f6864;
+}
+
+.sed-loop__card p > span {
+  display: block;
+}
+
+.sed-loop__hint {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0 16px 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: right;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.55) 0%, #fff 55%);
+}
+
+.sed-loop.is-reduced .sed-loop__fiber,
+.sed-loop.is-reduced .sed-loop__spine,
+.sed-loop.is-reduced .sed-loop__flow,
+.sed-loop.is-reduced .sed-loop__packet,
+.sed-loop.is-reduced .sed-loop__ripple {
+  display: none;
+}
+
+.sed-loop.is-reduced .sed-loop__rows {
+  display: block;
+  min-height: auto;
+  padding: 12px 14px;
+}
+
+.sed-loop.is-reduced .sed-loop__row {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.sed-loop.is-reduced .sed-loop__node {
+  display: none;
+}
+
+.sed-loop.is-reduced .sed-loop__card {
+  opacity: 1;
+  cursor: default;
+  border-color: var(--line);
+  background: #fff;
+}
+
+.sed-loop.is-reduced .sed-loop__card p {
+  margin-top: 6px;
+}
+
+@media (max-width: 720px) {
+  .sed-loop__inner,
+  .sed-loop__rows {
+    min-height: auto;
+  }
+
+  .sed-loop__fiber {
+    width: 100%;
+    height: 120px;
+    bottom: auto;
+    opacity: 0.72;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+  }
+
+  .sed-loop__spine {
+    display: none;
+  }
+
+  .sed-loop__rows {
+    grid-template-columns: 1fr;
+    padding: 10px 12px 8px;
+  }
+
+  .sed-loop__row {
+    display: block;
+  }
+
+  .sed-loop__node {
+    display: none;
+  }
+
+  .sed-loop__card:not(.is-active) {
+    opacity: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sed-loop__node.is-active .sed-loop__ripple {
+    animation: none;
+  }
+}

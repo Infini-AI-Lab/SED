@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "self-evolving-defense"
+version = "0.1.0"
+description = "Context-only self-evolving defense framework for LLM agents"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools.packages.find]
+include = ["sed*", "evaluation*"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}

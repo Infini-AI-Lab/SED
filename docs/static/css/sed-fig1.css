@@ -1,0 +1,239 @@
+/* Figure 1 — animated SED loop (SVG rebuilt from the paper figure) */
+
+.overview-figure.is-svg > img { display: none; }
+/* placeholder before the SVG mounts (or the PNG is swapped in on failure) */
+.overview-figure__png[src^="data:"] { border-color: transparent; background: #fafbfa; }
+html:not(.js) .overview-figure__png { display: none; }
+
+.sed-fig1 {
+  position: relative;
+  border: 1px solid #edf0ee;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px 6px;
+  overflow: hidden;
+}
+.sed-fig1 .sed-fig1-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- nodes ---------- */
+.sed-fig1-svg .f1-node,
+.sed-fig1-svg .f1-arrow {
+  transition: opacity 520ms ease;
+}
+.sed-fig1.is-live .f1-node:not(.is-active) { opacity: 0.8; }
+.sed-fig1.is-live .f1-arrow:not(.is-lit) { opacity: 0.86; }
+
+.sed-fig1-svg .f1-halo {
+  fill: none;
+  stroke-width: 2.4;
+  opacity: 0;
+  filter: drop-shadow(0 0 5px currentColor);
+  transition: opacity 420ms ease, stroke-width 420ms ease;
+  pointer-events: none;
+}
+.sed-fig1-svg .f1-node.is-active .f1-halo {
+  opacity: 0.85;
+  animation: f1-halo-breathe 2.4s ease-in-out infinite;
+}
+@keyframes f1-halo-breathe {
+  0%, 100% { stroke-width: 2.2; opacity: 0.7; }
+  50% { stroke-width: 3.2; opacity: 0.95; }
+}
+
+.sed-fig1-svg .f1-clickable { cursor: pointer; }
+.sed-fig1-svg .f1-clickable:hover .f1-halo { opacity: 0.35; }
+.sed-fig1-svg .f1-clickable:hover .f1-text { text-decoration: none; }
+
+/* labelled arrows get a soft lift when lit */
+.sed-fig1-svg .f1-arrow.is-lit .f1-text {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.95));
+}
+.sed-fig1-svg .f1-arrow.is-lit .f1-arrow,
+.sed-fig1-svg .f1-arrow.is-lit .f1-green {
+  filter: drop-shadow(0 0 3px rgba(23, 26, 24, 0.25));
+}
+
+/* banners */
+.sed-fig1-svg .f1-static { transition: opacity 520ms ease; }
+.sed-fig1.is-live #f1-banner-episode:not(.is-lit),
+.sed-fig1.is-live #f1-banner-post:not(.is-lit) { opacity: 0.68; }
+
+/* judge branch: alternate the two outcomes */
+.sed-fig1-svg .f1-box-defended,
+.sed-fig1-svg .f1-box-attack {
+  transition: filter 300ms ease;
+}
+.sed-fig1-svg .f1-node.is-branch .f1-box-defended {
+  animation: f1-branch-green 2.7s ease-in-out infinite;
+}
+.sed-fig1-svg .f1-node.is-branch .f1-box-attack {
+  animation: f1-branch-red 2.7s ease-in-out infinite;
+}
+@keyframes f1-branch-green {
+  0%, 15% { filter: none; }
+  30%, 50% { filter: drop-shadow(0 0 6px rgba(78, 167, 46, 0.9)); }
+  65%, 100% { filter: none; }
+}
+@keyframes f1-branch-red {
+  0%, 55% { filter: none; }
+  70%, 90% { filter: drop-shadow(0 0 6px rgba(224, 67, 58, 0.9)); }
+  100% { filter: none; }
+}
+
+/* tree leaves pulse during synthesis */
+.sed-fig1[data-step="synth"] #f1-node-tree .f1-tree-node {
+  animation: f1-leaf-pop 1.3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sed-fig1[data-step="synth"] #f1-node-tree .f1-tree-node:nth-of-type(4) { animation-delay: 0.2s; }
+.sed-fig1[data-step="synth"] #f1-node-tree .f1-tree-node:nth-of-type(5) { animation-delay: 0.4s; }
+@keyframes f1-leaf-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* retrieval star glows while retrieving */
+.sed-fig1[data-step="retrieve"] #f1-node-retrieval .f1-star-gold {
+  animation: f1-star 1.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes f1-star {
+  0%, 100% { transform: scale(1); filter: none; }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 5px rgba(255, 192, 0, 0.95)); }
+}
+
+/* ---------- flows / packets ---------- */
+.sed-fig1-svg .f1-flow {
+  stroke-width: 3.2;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
+}
+.sed-fig1-svg .f1-packet {
+  stroke: #fff;
+  stroke-width: 1.4;
+  pointer-events: none;
+}
+.sed-fig1-svg .f1-packet-halo {
+  filter: url(#f1-packet-glow);
+  pointer-events: none;
+}
+
+/* ---------- controls ---------- */
+.sed-fig1-ui {
+  margin: 14px 0 6px;
+}
+.sed-fig1-steps {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.sed-fig1-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--line, #dfe4e1);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted, #5e6561);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 200ms ease, background-color 200ms ease, color 200ms ease, transform 200ms ease;
+}
+.sed-fig1-step:hover { border-color: #b7c2bc; transform: translateY(-1px); }
+.sed-fig1-step:focus-visible { outline: 2px solid var(--green, #176b52); outline-offset: 2px; }
+.sed-fig1-step.is-active {
+  border-color: var(--green, #176b52);
+  background: #edf7f2;
+  color: var(--ink, #171a18);
+}
+.sed-fig1-step__num {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--green-dark, #0e4a39);
+}
+.sed-fig1-step__name { font-weight: 600; letter-spacing: 0.01em; }
+.sed-fig1-step__bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: rgba(23, 107, 82, 0.12);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.sed-fig1-step.is-active .sed-fig1-step__bar { opacity: 1; }
+.sed-fig1-step__bar i {
+  display: block;
+  height: 100%;
+  background: var(--green, #176b52);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.sed-fig1-caption {
+  margin: 12px 0 0;
+  min-height: 2.6em;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #3f4743;
+}
+.sed-fig1-caption b { color: var(--ink, #171a18); font-weight: 700; margin-right: 4px; }
+.sed-fig1-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.74rem;
+  color: #8a968f;
+  text-align: right;
+}
+
+@media (max-width: 820px) {
+  /* keep the diagram legible: it becomes a horizontally scrollable stage */
+  .sed-fig1 {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .sed-fig1 .sed-fig1-svg { min-width: 760px; }
+  .sed-fig1-steps {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .sed-fig1-steps::-webkit-scrollbar { display: none; }
+  .sed-fig1-step {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    padding: 7px 12px 9px;
+    scroll-snap-align: center;
+  }
+  .sed-fig1-hint { text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sed-fig1-svg .f1-node.is-active .f1-halo,
+  .sed-fig1-svg .f1-node.is-branch .f1-box-defended,
+  .sed-fig1-svg .f1-node.is-branch .f1-box-attack,
+  .sed-fig1[data-step="synth"] #f1-node-tree .f1-tree-node,
+  .sed-fig1[data-step="retrieve"] #f1-node-retrieval .f1-star-gold { animation: none; }
+  .sed-fig1.is-live .f1-node:not(.is-active) { opacity: 0.9; }
+}

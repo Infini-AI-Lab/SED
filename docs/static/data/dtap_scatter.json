@@ -1,0 +1,562 @@
+{
+  "models": [
+    {
+      "key": "deepseek",
+      "label": "DeepSeek V4 Flash",
+      "ring": "#1565C0"
+    },
+    {
+      "key": "glm",
+      "label": "GLM-5.2",
+      "ring": "#00897B"
+    },
+    {
+      "key": "kimi",
+      "label": "Kimi K3",
+      "ring": "#C62828"
+    }
+  ],
+  "defenses": [
+    {
+      "key": "no_defense",
+      "label": "No defense",
+      "color": "#888888"
+    },
+    {
+      "key": "llama_guard",
+      "label": "Llama Guard 3",
+      "color": "#6A1B9A"
+    },
+    {
+      "key": "safeharbor",
+      "label": "SafeHarbor",
+      "color": "#EF6C00"
+    },
+    {
+      "key": "drift",
+      "label": "DRIFT",
+      "color": "#0277BD"
+    },
+    {
+      "key": "guardagent",
+      "label": "GuardAgent",
+      "color": "#5D4037"
+    },
+    {
+      "key": "sed",
+      "label": "SED",
+      "color": "#1B5E20"
+    }
+  ],
+  "domains": [
+    "crm",
+    "workflow",
+    "code"
+  ],
+  "points": [
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "no_defense",
+      "defenseLabel": "No defense",
+      "color": "#888888",
+      "benign": 92.72000000000001,
+      "indirect": 85.07333333333334,
+      "direct": 91.61000000000001,
+      "domains": {
+        "crm": {
+          "indirect": 86.67,
+          "direct": 96.67,
+          "benign": 87.12
+        },
+        "workflow": {
+          "indirect": 78.85,
+          "direct": 83.12,
+          "benign": 91.34
+        },
+        "code": {
+          "indirect": 89.7,
+          "direct": 95.04,
+          "benign": 99.7
+        }
+      }
+    },
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "llama_guard",
+      "defenseLabel": "Llama Guard 3",
+      "color": "#6A1B9A",
+      "benign": 91.00666666666666,
+      "indirect": 55.04,
+      "direct": 51.51333333333334,
+      "domains": {
+        "crm": {
+          "indirect": 66.67,
+          "direct": 67.42,
+          "benign": 82.42
+        },
+        "workflow": {
+          "indirect": 54.81,
+          "direct": 45.45,
+          "benign": 92.12
+        },
+        "code": {
+          "indirect": 43.64,
+          "direct": 41.67,
+          "benign": 98.48
+        }
+      }
+    },
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "safeharbor",
+      "defenseLabel": "SafeHarbor",
+      "color": "#EF6C00",
+      "benign": 72.88666666666667,
+      "indirect": 68.27,
+      "direct": 72.04333333333334,
+      "domains": {
+        "crm": {
+          "indirect": 58.67,
+          "direct": 80.0,
+          "benign": 39.39
+        },
+        "workflow": {
+          "indirect": 62.5,
+          "direct": 67.53,
+          "benign": 88.06
+        },
+        "code": {
+          "indirect": 83.64,
+          "direct": 68.6,
+          "benign": 91.21
+        }
+      }
+    },
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "drift",
+      "defenseLabel": "DRIFT",
+      "color": "#0277BD",
+      "benign": 92.65333333333335,
+      "indirect": 37.29333333333333,
+      "direct": 82.32333333333334,
+      "domains": {
+        "crm": {
+          "indirect": 33.33,
+          "direct": 83.33,
+          "benign": 86.06
+        },
+        "workflow": {
+          "indirect": 57.69,
+          "direct": 72.73,
+          "benign": 92.81
+        },
+        "code": {
+          "indirect": 20.86,
+          "direct": 90.91,
+          "benign": 99.09
+        }
+      }
+    },
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "guardagent",
+      "defenseLabel": "GuardAgent",
+      "color": "#5D4037",
+      "benign": 90.03000000000002,
+      "indirect": 47.54,
+      "direct": 82.13,
+      "domains": {
+        "crm": {
+          "indirect": 48.32,
+          "direct": 88.89,
+          "benign": 80.0
+        },
+        "workflow": {
+          "indirect": 66.35,
+          "direct": 64.94,
+          "benign": 90.7
+        },
+        "code": {
+          "indirect": 27.95,
+          "direct": 92.56,
+          "benign": 99.39
+        }
+      }
+    },
+    {
+      "model": "deepseek",
+      "modelLabel": "DeepSeek V4 Flash",
+      "modelRing": "#1565C0",
+      "defense": "sed",
+      "defenseLabel": "SED",
+      "color": "#1B5E20",
+      "benign": 91.94333333333334,
+      "indirect": 22.256666666666664,
+      "direct": 25.87,
+      "domains": {
+        "crm": {
+          "indirect": 21.48,
+          "direct": 22.47,
+          "benign": 86.59
+        },
+        "workflow": {
+          "indirect": 19.23,
+          "direct": 31.17,
+          "benign": 90.15
+        },
+        "code": {
+          "indirect": 26.06,
+          "direct": 23.97,
+          "benign": 99.09
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "no_defense",
+      "defenseLabel": "No defense",
+      "color": "#888888",
+      "benign": 87.44333333333333,
+      "indirect": 41.13666666666666,
+      "direct": 45.79,
+      "domains": {
+        "crm": {
+          "indirect": 41.33,
+          "direct": 32.22,
+          "benign": 72.12
+        },
+        "workflow": {
+          "indirect": 32.38,
+          "direct": 47.3,
+          "benign": 92.33
+        },
+        "code": {
+          "indirect": 49.7,
+          "direct": 57.85,
+          "benign": 97.88
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "llama_guard",
+      "defenseLabel": "Llama Guard 3",
+      "color": "#6A1B9A",
+      "benign": 89.29,
+      "indirect": 24.99,
+      "direct": 33.81666666666667,
+      "domains": {
+        "crm": {
+          "indirect": 18.67,
+          "direct": 17.78,
+          "benign": 75.15
+        },
+        "workflow": {
+          "indirect": 8.74,
+          "direct": 32.0,
+          "benign": 93.94
+        },
+        "code": {
+          "indirect": 47.56,
+          "direct": 51.67,
+          "benign": 98.78
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "safeharbor",
+      "defenseLabel": "SafeHarbor",
+      "color": "#EF6C00",
+      "benign": 83.18666666666667,
+      "indirect": 19.13,
+      "direct": 23.143333333333334,
+      "domains": {
+        "crm": {
+          "indirect": 12.0,
+          "direct": 13.33,
+          "benign": 58.18
+        },
+        "workflow": {
+          "indirect": 26.0,
+          "direct": 28.0,
+          "benign": 92.6
+        },
+        "code": {
+          "indirect": 19.39,
+          "direct": 28.1,
+          "benign": 98.78
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "drift",
+      "defenseLabel": "DRIFT",
+      "color": "#0277BD",
+      "benign": 89.24666666666667,
+      "indirect": 15.473333333333334,
+      "direct": 33.699999999999996,
+      "domains": {
+        "crm": {
+          "indirect": 10.67,
+          "direct": 20.0,
+          "benign": 75.76
+        },
+        "workflow": {
+          "indirect": 21.2,
+          "direct": 37.3,
+          "benign": 93.2
+        },
+        "code": {
+          "indirect": 14.55,
+          "direct": 43.8,
+          "benign": 98.78
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "guardagent",
+      "defenseLabel": "GuardAgent",
+      "color": "#5D4037",
+      "benign": 87.33666666666666,
+      "indirect": 34.38333333333333,
+      "direct": 45.54666666666666,
+      "domains": {
+        "crm": {
+          "indirect": 36.0,
+          "direct": 32.22,
+          "benign": 73.33
+        },
+        "workflow": {
+          "indirect": 30.5,
+          "direct": 50.7,
+          "benign": 90.5
+        },
+        "code": {
+          "indirect": 36.65,
+          "direct": 53.72,
+          "benign": 98.18
+        }
+      }
+    },
+    {
+      "model": "glm",
+      "modelLabel": "GLM-5.2",
+      "modelRing": "#00897B",
+      "defense": "sed",
+      "defenseLabel": "SED",
+      "color": "#1B5E20",
+      "benign": 88.47666666666667,
+      "indirect": 7.18,
+      "direct": 10.676666666666668,
+      "domains": {
+        "crm": {
+          "indirect": 8.26,
+          "direct": 12.2,
+          "benign": 75.78
+        },
+        "workflow": {
+          "indirect": 9.62,
+          "direct": 17.33,
+          "benign": 91.78
+        },
+        "code": {
+          "indirect": 3.66,
+          "direct": 2.5,
+          "benign": 97.87
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "no_defense",
+      "defenseLabel": "No defense",
+      "color": "#888888",
+      "benign": 92.44,
+      "indirect": 34.57666666666667,
+      "direct": 39.94,
+      "domains": {
+        "crm": {
+          "indirect": 41.33,
+          "direct": 42.22,
+          "benign": 88.48
+        },
+        "workflow": {
+          "indirect": 25.81,
+          "direct": 26.32,
+          "benign": 89.22
+        },
+        "code": {
+          "indirect": 36.59,
+          "direct": 51.28,
+          "benign": 99.62
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "llama_guard",
+      "defenseLabel": "Llama Guard 3",
+      "color": "#6A1B9A",
+      "benign": 94.05,
+      "indirect": 21.116666666666664,
+      "direct": 31.599999999999998,
+      "domains": {
+        "crm": {
+          "indirect": 21.33,
+          "direct": 34.44,
+          "benign": 88.48
+        },
+        "workflow": {
+          "indirect": 8.08,
+          "direct": 16.88,
+          "benign": 93.67
+        },
+        "code": {
+          "indirect": 33.94,
+          "direct": 43.48,
+          "benign": 100.0
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "safeharbor",
+      "defenseLabel": "SafeHarbor",
+      "color": "#EF6C00",
+      "benign": 86.70666666666666,
+      "indirect": 9.796666666666667,
+      "direct": 19.906666666666666,
+      "domains": {
+        "crm": {
+          "indirect": 15.33,
+          "direct": 17.78,
+          "benign": 70.3
+        },
+        "workflow": {
+          "indirect": 4.3,
+          "direct": 11.69,
+          "benign": 91.64
+        },
+        "code": {
+          "indirect": 9.76,
+          "direct": 30.25,
+          "benign": 98.18
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "drift",
+      "defenseLabel": "DRIFT",
+      "color": "#0277BD",
+      "benign": 93.63666666666666,
+      "indirect": 15.729999999999999,
+      "direct": 33.78333333333333,
+      "domains": {
+        "crm": {
+          "indirect": 16.67,
+          "direct": 30.0,
+          "benign": 87.88
+        },
+        "workflow": {
+          "indirect": 21.43,
+          "direct": 30.67,
+          "benign": 93.41
+        },
+        "code": {
+          "indirect": 9.09,
+          "direct": 40.68,
+          "benign": 99.62
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "guardagent",
+      "defenseLabel": "GuardAgent",
+      "color": "#5D4037",
+      "benign": 89.8,
+      "indirect": 20.953333333333333,
+      "direct": 38.86,
+      "domains": {
+        "crm": {
+          "indirect": 25.33,
+          "direct": 41.11,
+          "benign": 81.82
+        },
+        "workflow": {
+          "indirect": 19.35,
+          "direct": 28.57,
+          "benign": 87.58
+        },
+        "code": {
+          "indirect": 18.18,
+          "direct": 46.9,
+          "benign": 100.0
+        }
+      }
+    },
+    {
+      "model": "kimi",
+      "modelLabel": "Kimi K3",
+      "modelRing": "#C62828",
+      "defense": "sed",
+      "defenseLabel": "SED",
+      "color": "#1B5E20",
+      "benign": 91.99666666666667,
+      "indirect": 3.83,
+      "direct": 7.5200000000000005,
+      "domains": {
+        "crm": {
+          "indirect": 3.33,
+          "direct": 7.78,
+          "benign": 88.18
+        },
+        "workflow": {
+          "indirect": 5.88,
+          "direct": 10.39,
+          "benign": 88.18
+        },
+        "code": {
+          "indirect": 2.28,
+          "direct": 4.39,
+          "benign": 99.63
+        }
+      }
+    }
+  ]
+}
