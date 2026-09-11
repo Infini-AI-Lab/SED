@@ -55,50 +55,74 @@
     --soft: #f5f7f5;
     --green: #176b52;
     --green-dark: #0e4a39;
+    /* readable measure for the content column; the page itself is full-bleed */
+    --content-w: 1300px;
+    --content-pad: 40px;
+    /* how far the side animation bleeds under the content before it fades out */
+    --bg-fade: 240px;
   }
   * { box-sizing: border-box; }
-  /* Root size is the single knob for page scale: every rem below resolves
-     against it, so raising this grows body text and headings together. */
-  html { scroll-behavior: smooth; font-size: 120%; }
+  /* All type is rem-based, so the root size sets the overall scale.
+     19px matches the FCV page's perceived size on large monitors. */
+  html { scroll-behavior: smooth; font-size: 19px; }
+  @media (max-width: 1100px) { html { font-size: 17.5px; } }
+  @media (max-width: 700px)  { html { font-size: 16px; } }
   body {
     margin: 0;
-    padding: 0 24px 96px;
+    padding: 0 0 96px;
     font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 1.0625rem;
-    line-height: 1.68;
+    font-size: 1rem;
+    line-height: 1.66;
     color: var(--ink);
-    background: #f4f7f5;
+    background: #fbfcfb;
     -webkit-font-smoothing: antialiased;
     position: relative;
   }
 
-  /* Page backdrop — set SED_PAGE_BG below: "vanta-net" | "fiber-nodes" */
+  /* Page backdrop — set SED_PAGE_BG below: "vanta-net" | "fiber-nodes".
+     Full strength in the side gutters, fading to a faint trace under the
+     content column so the animation never competes with the text. */
   #page-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: auto;
     background: #f4f7f5;
-    opacity: 0.5;
+    opacity: 0.55;
     animation: page-bg-breathe 20s ease-in-out infinite;
+    --edge: calc(50% - var(--content-w) / 2);
+    --solid: max(0px, calc(var(--edge) - var(--bg-fade)));
+    -webkit-mask-image: linear-gradient(to right,
+      #000 0,
+      #000 var(--solid),
+      rgba(0, 0, 0, 0.10) calc(var(--edge) + 60px),
+      rgba(0, 0, 0, 0.10) calc(100% - var(--edge) - 60px),
+      #000 calc(100% - var(--solid)),
+      #000 100%);
+    mask-image: linear-gradient(to right,
+      #000 0,
+      #000 var(--solid),
+      rgba(0, 0, 0, 0.10) calc(var(--edge) + 60px),
+      rgba(0, 0, 0, 0.10) calc(100% - var(--edge) - 60px),
+      #000 calc(100% - var(--solid)),
+      #000 100%);
   }
   @keyframes page-bg-breathe {
-    0%, 100% { opacity: 0.44; }
-    50% { opacity: 0.58; }
+    0%, 100% { opacity: 0.48; }
+    50% { opacity: 0.62; }
   }
 
+  /* Full-bleed page: no card. The content column is centred at a readable width. */
   .wrap {
     position: relative;
     z-index: 1;
-    max-width: 1241px;
-    margin: 28px auto 0;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(223, 228, 225, 0.95);
-    border-radius: 14px;
-    padding: 8px 40px 48px;
-    box-shadow: 0 10px 40px rgba(23, 26, 24, 0.05);
+    padding: 0 var(--content-pad) 48px;
+  }
+  .wrap > header,
+  .wrap > main,
+  .wrap > footer {
+    max-width: var(--content-w);
+    margin-inline: auto;
   }
 
   /* ---- title block ---- */
@@ -116,36 +140,37 @@
     letter-spacing: 0.04em;
   }
   h1 {
-    max-width: 900px;
+    max-width: 56rem;
     margin: 0 auto 14px;
     font-family: Georgia, "Times New Roman", serif;
-    font-size: 3.15rem;
+    font-size: 3.6rem;
     line-height: 1.08;
     font-weight: 700;
     letter-spacing: -0.01em;
     text-wrap: balance;
   }
   .title-sub {
-    max-width: 720px;
+    max-width: 45rem;
     margin: 0 auto 22px;
     font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.38rem;
+    font-size: 1.6rem;
     line-height: 1.35;
     font-weight: 400;
     color: #3f4743;
     text-wrap: balance;
   }
   .deck {
-    max-width: 760px;
-    margin: 0 auto 28px;
+    max-width: 52rem;
+    margin: 28px auto 0;
     color: #3f4743;
-    font-size: 1.12rem;
-    line-height: 1.6;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    text-wrap: pretty;
   }
-  .authors { margin: 0 auto 6px; line-height: 2; max-width: 860px; }
+  .authors { margin: 0 auto 6px; font-size: 1.1rem; line-height: 2; max-width: 54rem; }
   sup { font-size: .7em; }
-  .affil { margin: 10px 0 0; font-size: .95rem; color: #525a56; line-height: 1.8; }
-  .note { margin: 6px 0 0; font-size: .9rem; color: var(--muted); }
+  .affil { margin: 10px 0 0; font-size: 1.1rem; color: #525a56; line-height: 1.8; }
+  .note { margin: 6px 0 0; font-size: 1.05rem; color: var(--muted); }
 
   .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 30px 0 0; }
   .links a {
@@ -195,7 +220,7 @@
   .highlights {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    margin: 40px 0 0;
+    margin: 22px 0 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
@@ -508,9 +533,7 @@
     .split, .split--fig-wide { grid-template-columns: 1fr; gap: 18px; }
   }
   @media (max-width: 600px) {
-    body { padding-inline: 12px; }
-    body { font-size: 1rem; }
-    .wrap { padding-inline: 18px; margin-top: 12px; border-radius: 10px; }
+    .wrap { padding-inline: 18px; }
     header { padding-top: 42px; }
     h1 { font-size: 2.35rem; }
     .title-sub { font-size: 1.08rem; }
@@ -542,9 +565,6 @@
   <h1>Self-Evolving Defense</h1>
   <p class="title-sub">Continual Security Policy Learning for LLM Agents</p>
 
-  <!-- <p class="deck">A training-free framework that turns harmful agent trajectories into
-  reusable security policies, allowing a frozen agent to improve as attacks evolve.</p> -->
-
   <p class="authors">
     Minh Nhat Le<sup>2</sup>*, Nisarga Gondi<sup>1</sup>*, Yibo Peng<sup>1</sup>,
     Ronghao Ni<sup>1</sup>, Limin Jia<sup>1</sup>, Beidi Chen<sup>1</sup>, Haizhong Zheng<sup>1</sup>
@@ -567,6 +587,8 @@
     </a>
     <a class="secondary" href="#bibtex">BibTeX</a>
   </div>
+
+  <!-- <p class="deck">A training-free framework that turns harmful agent trajectories into reusable security policies, allowing a frozen agent to improve as attacks evolve.</p> -->
 
   <div class="highlights" aria-label="Selected results">
     <div class="highlight" tabindex="0">
@@ -628,7 +650,7 @@ keeping the agent's model weights frozen.</p>
     the agent.</p>
   </div>
 
-  <figure class="narrow">
+  <figure>
     <img loading="lazy" decoding="async" src="static/images/adaptive_asr.png?v=tight2" alt="Bar chart of attack success rate for AutoDAN-Turbo and X-Teaming against no defense, Llama Guard, and SafeHarbor.">
     <figcaption><b>Figure 2:</b> Attack success rate of adaptive jailbreaks on HarmBench
     against an undefended agent and two static jailbreak defenses.</figcaption>
