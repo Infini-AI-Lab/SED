@@ -57,12 +57,14 @@
     --green-dark: #0e4a39;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  /* Root size is the single knob for page scale: every rem below resolves
+     against it, so raising this grows body text and headings together. */
+  html { scroll-behavior: smooth; font-size: 120%; }
   body {
     margin: 0;
     padding: 0 24px 96px;
     font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 17px;
+    font-size: 1.0625rem;
     line-height: 1.68;
     color: var(--ink);
     background: #f4f7f5;
@@ -507,7 +509,7 @@
   }
   @media (max-width: 600px) {
     body { padding-inline: 12px; }
-    body { font-size: 16px; }
+    body { font-size: 1rem; }
     .wrap { padding-inline: 18px; margin-top: 12px; border-radius: 10px; }
     header { padding-top: 42px; }
     h1 { font-size: 2.35rem; }
@@ -537,19 +539,18 @@
 <div class="wrap">
 
 <header>
-  <p class="kicker">Preprint · 2026</p>
   <h1>Self-Evolving Defense</h1>
   <p class="title-sub">Continual Security Policy Learning for LLM Agents</p>
 
-  <p class="deck">A training-free framework that turns harmful agent trajectories into
-  reusable security policies, allowing a frozen agent to improve as attacks evolve.</p>
+  <!-- <p class="deck">A training-free framework that turns harmful agent trajectories into
+  reusable security policies, allowing a frozen agent to improve as attacks evolve.</p> -->
 
   <p class="authors">
     Minh Nhat Le<sup>2</sup>*, Nisarga Gondi<sup>1</sup>*, Yibo Peng<sup>1</sup>,
     Ronghao Ni<sup>1</sup>, Limin Jia<sup>1</sup>, Beidi Chen<sup>1</sup>, Haizhong Zheng<sup>1</sup>
   </p>
   <p class="affil"><sup>1</sup>Carnegie Mellon University &nbsp;&nbsp; <sup>2</sup>University of Massachusetts Amherst</p>
-  <p class="note">*Equal contribution. Work by Minh Nhat Le was completed during an internship at Carnegie Mellon University.</p>
+  <p class="note">*Equal contribution.</p>
 
   <div class="links">
     <span class="link-disabled" role="link" aria-disabled="true" title="The PDF will be linked here when the preprint is public">
@@ -627,7 +628,7 @@ keeping the agent's model weights frozen.</p>
     the agent.</p>
   </div>
 
-  <figure>
+  <figure class="narrow">
     <img loading="lazy" decoding="async" src="static/images/adaptive_asr.png?v=tight2" alt="Bar chart of attack success rate for AutoDAN-Turbo and X-Teaming against no defense, Llama Guard, and SafeHarbor.">
     <figcaption><b>Figure 2:</b> Attack success rate of adaptive jailbreaks on HarmBench
     against an undefended agent and two static jailbreak defenses.</figcaption>
